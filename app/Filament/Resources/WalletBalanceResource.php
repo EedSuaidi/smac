@@ -19,7 +19,7 @@ class WalletBalanceResource extends Resource
 
     protected static ?string $navigationGroup = 'Menu';
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-wallet';
 
     protected static ?int $navigationSort = 3;
 
@@ -37,13 +37,28 @@ class WalletBalanceResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('crypto.name')
                     ->label('Cryptocurrency')
-                    ->getStateUsing(fn($record) => "{$record->crypto->name} ({$record->crypto->symbol})")
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($state, $record) {
+                        $symbol = $record->crypto->symbol ?? '';
+                        return "<div>{$state}<br><small style='font-size: 0.8em; color: gray;'>{$symbol}</small></div>";
+                    })
+                    ->html(),
                 Tables\Columns\TextColumn::make('balance')
                     ->label('Balance')
                     ->sortable()
                     ->numeric(),
+                Tables\Columns\TextColumn::make('total_asset')
+                    ->label('Total Asset')
+                    ->getStateUsing(function ($record) {
+                        // Gunakan symbol dari database, bukan coingecko_id
+                        $cryptoSymbol = $record->crypto->symbol;
+                        // Pastikan Anda sudah mengubah singleton di AppServiceProvider
+                        $price = app(\App\Services\CryptoPriceService::class)->getPrice($cryptoSymbol);
+                        return $record->balance * $price;
+                    })
+                    ->formatStateUsing(fn($state) => '$' . number_format($state, 2)),
             ])
             ->filters([
                 //

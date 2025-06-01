@@ -19,7 +19,7 @@ class ReportResource extends Resource
 
     protected static ?string $navigationGroup = 'Menu';
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
     protected static ?int $navigationSort = 4;
 
