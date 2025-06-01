@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Filament\Resources\CryptoResource\Pages;
+namespace App\Filament\Resources\CurrencyResource\Pages;
 
-use App\Filament\Resources\CryptoResource;
+use App\Filament\Resources\CurrencyResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 
-class ListCryptos extends ListRecords
+class ListCurrencys extends ListRecords
 {
-    protected static string $resource = CryptoResource::class;
+    protected static string $resource = CurrencyResource::class;
 
     protected function getHeaderActions(): array
     {

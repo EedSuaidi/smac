@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\CryptoResource\Pages;
-use App\Filament\Resources\CryptoResource\RelationManagers;
-use App\Models\Crypto;
+use App\Filament\Resources\CurrencyResource\Pages;
+use App\Filament\Resources\CurrencyResource\RelationManagers;
+use App\Models\Currency;
 use Filament\Forms;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -16,9 +16,9 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class CryptoResource extends Resource
+class CurrencyResource extends Resource
 {
-    protected static ?string $model = Crypto::class;
+    protected static ?string $model = Currency::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
 
@@ -58,7 +58,7 @@ class CryptoResource extends Resource
                 //
             ])
             // ->headerActions([
-            //     ExportAction::make()->exporter(CryptoExporter::class),
+            //     ExportAction::make()->exporter(CurrencyExporter::class),
             // ])
             ->actions([
                 Tables\Actions\ViewAction::make()->color('blue'),
@@ -82,9 +82,9 @@ class CryptoResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListCryptos::route('/'),
-            'create' => Pages\CreateCrypto::route('/create'),
-            'edit' => Pages\EditCrypto::route('/{record}/edit'),
+            'index' => Pages\ListCurrencys::route('/'),
+            'create' => Pages\CreateCurrency::route('/create'),
+            'edit' => Pages\EditCurrency::route('/{record}/edit'),
         ];
     }
 }

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Crypto extends Model
+class Currency extends Model
 {
     use HasFactory;
 
@@ -18,10 +18,22 @@ class Crypto extends Model
     protected $fillable = [
         'name',
         'symbol',
+        'currency_type',
     ];
 
     /**
-     * Get the transactions for the crypto.
+     * The attributes that should be cast.
+     * Tidak menggunakan Enum, jadi cast ke string saja jika diperlukan, atau tidak perlu di-cast.
+     * Laravel akan menangani tipe ENUM di DB sebagai string secara otomatis.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'currency_type' => 'string', // Opsional, Laravel sudah menganggapnya string
+    ];
+
+    /**
+     * Get the transactions for the currency.
      */
     public function transactions(): HasMany
     {
@@ -29,7 +41,7 @@ class Crypto extends Model
     }
 
     /**
-     * Get the wallet balances for the crypto.
+     * Get the wallet balances for the currency.
      */
     public function walletBalances(): HasMany
     {

@@ -11,12 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('wallet_balances', function (Blueprint $table) {
+        Schema::create('currencies', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade')->onUpdate('cascade');
-            $table->foreignId('currency_id')->constrained()->onDelete('cascade')->onUpdate('cascade');
-            $table->unique(['user_id', 'currency_id']);
-            $table->decimal('balance', 20, 8);
+            $table->string('name')->unique();
+            $table->string('symbol')->unique();
+            $table->enum('currency_type', ['fiat', 'crypto']);
             $table->timestamps();
         });
     }
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('wallet_balances');
+        Schema::dropIfExists('currencies');
     }
 };

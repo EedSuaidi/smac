@@ -17,7 +17,7 @@ class WalletBalance extends Model
      */
     protected $fillable = [
         'user_id',
-        'crypto_id',
+        'currency_id',
         'balance',
     ];
 
@@ -27,7 +27,7 @@ class WalletBalance extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'balance' => 'float',
+        'balance' => 'decimal:8',
     ];
 
     /**
@@ -39,10 +39,10 @@ class WalletBalance extends Model
     }
 
     /**
-     * Get the crypto that the wallet balance belongs to.
+     * Get the currency that the wallet balance belongs to.
      */
-    public function crypto(): BelongsTo
+    public function currency(): BelongsTo
     {
-        return $this->belongsTo(Crypto::class);
+        return $this->belongsTo(Currency::class);
     }
 }

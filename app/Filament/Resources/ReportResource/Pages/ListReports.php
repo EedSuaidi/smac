@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ReportResource\Pages;
 
+use App\Filament\Exports\ReportExporter;
 use App\Filament\Resources\ReportResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
@@ -13,7 +14,8 @@ class ListReports extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\ExportAction::make()
+                ->exporter(ReportExporter::class),
         ];
     }
 }

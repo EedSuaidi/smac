@@ -3,7 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ReportResource\Pages;
-use App\Filament\Resources\ReportResource\RelationManagers;
+// use App\Filament\Resources\ReportResource\RelationManagers;
 use App\Models\Report;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -11,7 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+// use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ReportResource extends Resource
 {
@@ -31,6 +31,13 @@ class ReportResource extends Resource
             ]);
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        // Panggil parent query untuk mendapatkan query dasar
+        // Kemudian tambahkan kondisi where untuk user_id yang sedang login
+        return parent::getEloquentQuery()->where('user_id', auth()->id());
+    }
+
     public static function table(Table $table): Table
     {
         return $table
@@ -41,11 +48,11 @@ class ReportResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                // Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    // Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -61,8 +68,8 @@ class ReportResource extends Resource
     {
         return [
             'index' => Pages\ListReports::route('/'),
-            'create' => Pages\CreateReport::route('/create'),
-            'edit' => Pages\EditReport::route('/{record}/edit'),
+            // 'create' => Pages\CreateReport::route('/create'),
+            // 'edit' => Pages\EditReport::route('/{record}/edit'),
         ];
     }
 }
