@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\WalletBalanceResource\Pages;
-use App\Filament\Resources\WalletBalanceResource\RelationManagers;
-use App\Models\WalletBalance;
+use App\Filament\Resources\ReportResource\Pages;
+use App\Filament\Resources\ReportResource\RelationManagers;
+use App\Models\Report;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -13,15 +13,15 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class WalletBalanceResource extends Resource
+class ReportResource extends Resource
 {
-    protected static ?string $model = WalletBalance::class;
+    protected static ?string $model = Report::class;
 
     protected static ?string $navigationGroup = 'Menu';
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4;
 
     public static function form(Form $form): Form
     {
@@ -35,21 +35,13 @@ class WalletBalanceResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('crypto.name')
-                    ->label('Cryptocurrency')
-                    ->getStateUsing(fn($record) => "{$record->crypto->name} ({$record->crypto->symbol})")
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('balance')
-                    ->label('Balance')
-                    ->sortable()
-                    ->numeric(),
+                //
             ])
             ->filters([
                 //
             ])
             ->actions([
-                // Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -68,9 +60,9 @@ class WalletBalanceResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListWalletBalances::route('/'),
-            // 'create' => Pages\CreateWalletBalance::route('/create'),
-            // 'edit' => Pages\EditWalletBalance::route('/{record}/edit'),
+            'index' => Pages\ListReports::route('/'),
+            'create' => Pages\CreateReport::route('/create'),
+            'edit' => Pages\EditReport::route('/{record}/edit'),
         ];
     }
 }

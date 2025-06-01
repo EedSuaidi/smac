@@ -19,10 +19,34 @@ class Transaction extends Model
         'crypto_id',
         'user_id',
         'amount',
-        'price_at_transaction',
-        'fiat_amount',
+        'price',
+        'total',
         'type',
+        'transaction_date',
     ];
+
+    protected static function booted()
+    {
+        static::created(function ($transaction) {
+            $wallet = WalletBalance::firstOrCreate(
+                [
+                    'crypto_id' => $transaction->crypto_id,
+                    'user_id' => $transaction->user_id,
+                ],
+                [
+                    'balance' => 0, // Default balance jika belum ada
+                ]
+            );
+
+            if ($transaction->type === 'buy') {
+                $wallet->balance += $transaction->amount;
+            } elseif ($transaction->type === 'sell') {
+                $wallet->balance -= $transaction->amount;
+            }
+
+            $wallet->save();
+        });
+    }
 
     /**
      * Get the user that owns the transaction.

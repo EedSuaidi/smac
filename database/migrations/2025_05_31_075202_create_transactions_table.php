@@ -15,10 +15,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('crypto_id')->constrained()->onDelete('cascade')->onUpdate('cascade');;
             $table->foreignId('user_id')->constrained()->onDelete('cascade')->onUpdate('cascade');;
-            $table->float('amount');
-            $table->float('price_at_transaction');
-            $table->float('fiat_amount');
+            $table->decimal('amount', 20, 8);
+            $table->decimal('price', 20, 8);
+            $table->decimal('total', 20, 8);
             $table->enum('type', ['buy', 'sell']);
+            $table->date('transaction_date');
             $table->timestamps();
         });
     }

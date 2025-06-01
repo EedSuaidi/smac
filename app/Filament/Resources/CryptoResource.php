@@ -10,6 +10,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -45,15 +46,20 @@ class CryptoResource extends Resource
                 TextColumn::make('name')
                     ->label('Name')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('symbol')
                     ->label('Symbol')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
             ])
             ->filters([
                 //
             ])
+            // ->headerActions([
+            //     ExportAction::make()->exporter(CryptoExporter::class),
+            // ])
             ->actions([
                 Tables\Actions\ViewAction::make()->color('blue'),
                 Tables\Actions\EditAction::make()->color('warning'),
