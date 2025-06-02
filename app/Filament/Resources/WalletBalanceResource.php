@@ -56,6 +56,15 @@ class WalletBalanceResource extends Resource
                     ->label('Balance')
                     ->sortable()
                     ->numeric(),
+                Tables\Columns\TextColumn::make('price')
+                    ->label('Price')
+                    ->getStateUsing(function ($record) {
+                        // Gunakan symbol dari database, bukan coingecko_id
+                        $currencySymbol = $record->currency->symbol;
+                        // Pastikan Anda sudah mengubah singleton di AppServiceProvider
+                        return app(\App\Services\CryptoPriceService::class)->getPrice($currencySymbol);
+                    })
+                    ->formatStateUsing(fn($state) => '$' . number_format($state, 2)),
                 Tables\Columns\TextColumn::make('total_asset')
                     ->label('Total Asset')
                     ->getStateUsing(function ($record) {

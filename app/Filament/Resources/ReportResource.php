@@ -42,7 +42,35 @@ class ReportResource extends Resource
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('daily_portfolio_value')
+                    ->label('Daily Portfolio Value')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($state) {
+                        return '$' . number_format($state, 0);
+                    }),
+                Tables\Columns\TextColumn::make('daily_asset_growth')
+                    ->label('Daily Asset Growth')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($state) {
+                        return '$' . number_format($state, 0);
+                    })
+                    ->badge()
+                    ->colors([
+                        'success' => fn($state) => $state >= 0,
+                        'danger' => fn($state) => $state < 0,
+                    ]),
+                Tables\Columns\TextColumn::make('report_date')
+                    ->label('Report Date')
+                    ->date()
+                    ->sortable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($state) {
+                        return $state->format('d M Y');
+                    }),
             ])
             ->filters([
                 //

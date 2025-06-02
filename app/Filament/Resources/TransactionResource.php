@@ -4,7 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Filament\Exports\TransactionExporter;
 use App\Filament\Resources\TransactionResource\Pages;
-// use App\Filament\Resources\TransactionResource\RelationManagers;
 use App\Models\Transaction;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -13,7 +12,6 @@ use Filament\Tables;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-// use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TransactionResource extends Resource
 {
@@ -232,18 +230,20 @@ class TransactionResource extends Resource
                     ->label('Price')
                     ->sortable()
                     ->formatStateUsing(function ($state) {
-                        return '$ ' . number_format($state, 2);
+                        return '$' . number_format($state, 2);
                     })
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('total')
                     ->label('Total')
                     ->sortable()
                     ->formatStateUsing(function ($state) {
-                        return '$ ' . number_format($state, 2);
+                        return '$' . number_format($state, 2);
                     })
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('transaction_type')
                     ->label('Transaction Type')
+                    ->sortable()
+                    ->toggleable()
                     ->badge()
                     ->icons([
                         'heroicon-o-arrow-trending-up' => 'buy',
@@ -257,9 +257,7 @@ class TransactionResource extends Resource
                         'blue' => 'deposit',
                         'warning' => 'withdraw',
                     ])
-                    ->formatStateUsing(fn($state) => ucfirst($state))
-                    ->sortable()
-                    ->toggleable(),
+                    ->formatStateUsing(fn($state) => ucfirst($state)),
                 Tables\Columns\TextColumn::make('transaction_date')
                     ->label('Transaction Date')
                     ->date('d M Y')

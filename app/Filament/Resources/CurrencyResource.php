@@ -3,18 +3,14 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CurrencyResource\Pages;
-use App\Filament\Resources\CurrencyResource\RelationManagers;
 use App\Models\Currency;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class CurrencyResource extends Resource
 {
@@ -26,16 +22,34 @@ class CurrencyResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('name')
+                Forms\Components\TextInput::make('name')
                     ->label('Name')
+                    ->placeholder('Enter currency name')
                     ->required()
                     ->maxLength(255)
                     ->unique(ignoreRecord: true),
-                TextInput::make('symbol')
+                Forms\Components\TextInput::make('symbol')
                     ->label('Symbol')
+                    ->placeholder('Enter currency symbol')
                     ->required()
                     ->maxLength(10)
                     ->unique(ignoreRecord: true),
+                Forms\Components\ToggleButtons::make('currency_type')
+                    ->label('Currency Type')
+                    ->inline()
+                    ->required()
+                    ->options([
+                        'fiat' => 'Fiat',
+                        'crypto' => 'Crypto',
+                    ])
+                    ->colors([
+                        'fiat' => 'success',
+                        'crypto' => 'warning',
+                    ])
+                    ->icons([
+                        'fiat' => 'heroicon-o-currency-dollar',
+                        'crypto' => 'heroicon-o-globe-alt',
+                    ]),
             ]);
     }
 
@@ -43,16 +57,31 @@ class CurrencyResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('name')
+                Tables\Columns\TextColumn::make('name')
                     ->label('Name')
                     ->searchable()
                     ->sortable()
                     ->toggleable(),
-                TextColumn::make('symbol')
+                Tables\Columns\TextColumn::make('symbol')
                     ->label('Symbol')
                     ->searchable()
                     ->sortable()
                     ->toggleable(),
+                Tables\Columns\TextColumn::make('currency_type')
+                    ->label('Currency Type')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable()
+                    ->badge()
+                    ->icons([
+                        'heroicon-o-currency-dollar' => 'fiat',
+                        'heroicon-o-globe-alt' => 'crypto',
+                    ])
+                    ->colors([
+                        'success' => 'fiat',
+                        'warning' => 'crypto',
+                    ])
+                    ->formatStateUsing(fn($state) => ucfirst($state)),
             ])
             ->filters([
                 //
