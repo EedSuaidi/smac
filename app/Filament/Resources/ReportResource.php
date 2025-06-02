@@ -63,6 +63,19 @@ class ReportResource extends Resource
                         'success' => fn($state) => $state >= 0,
                         'danger' => fn($state) => $state < 0,
                     ]),
+                Tables\Columns\TextColumn::make('daily_asset_growth_percentage')
+                    ->label('Daily Asset Growth Percentage')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state, 2) . '%';
+                    })
+                    ->badge()
+                    ->colors([
+                        'success' => fn($state) => $state >= 0,
+                        'danger' => fn($state) => $state < 0,
+                    ]),
                 Tables\Columns\TextColumn::make('report_date')
                     ->label('Report Date')
                     ->date()

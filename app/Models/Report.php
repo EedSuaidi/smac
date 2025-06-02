@@ -28,9 +28,10 @@ class Report extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'daily_portfolio_value' => 'decimal:8', // Sesuaikan desimal
-        'daily_asset_growth' => 'decimal:8',    // Sesuaikan desimal
-        'report_date' => 'date',                // Cast ke Carbon date object
+        'daily_portfolio_value' => 'decimal:8',
+        'daily_asset_growth' => 'decimal:8',
+        'daily_asset_growth_percentage' => 'decimal:2',
+        'report_date' => 'date',
     ];
 
     /**

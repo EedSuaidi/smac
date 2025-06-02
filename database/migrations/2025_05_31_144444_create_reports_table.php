@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade')->onUpdate('cascade');
             $table->decimal('daily_portfolio_value', 20, 8);
             $table->decimal('daily_asset_growth', 20, 8);
+            $table->decimal('daily_asset_growth_percentage', 5, 2);
             $table->date('report_date');
             $table->unique(['user_id', 'report_date']);
             $table->timestamps();

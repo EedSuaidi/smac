@@ -66,6 +66,7 @@ class TransactionResource extends Resource
                     ->numeric()
                     ->required()
                     ->reactive()
+                    ->debounce('500ms')
                     ->afterStateUpdated(function ($state, callable $set, $get) {
                         $price = $get('price') ?? 0;
                         // Pastikan perhitungan menggunakan nilai float/decimal dan format total
@@ -93,6 +94,7 @@ class TransactionResource extends Resource
                     ->prefix('$')
                     ->required()
                     ->reactive()
+                    ->debounce('500ms')
                     ->afterStateUpdated(function ($state, callable $set, $get) {
                         $amount = $get('amount') ?? 0;
                         // Pastikan perhitungan menggunakan nilai float/decimal dan format total
