@@ -9,7 +9,6 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -44,11 +43,6 @@ class TransactionResource extends Resource
                     ->required()
                     ->reactive()
                     ->afterStateUpdated(function ($state, callable $set, $get) {
-                        // // Reset type, price, total saat currency_id berubah
-                        // $set('transaction_type', null);
-                        // $set('price', null);
-                        // $set('total', null);
-
                         $currency = \App\Models\Currency::find($state);
                         if ($currency && $currency->currency_type === 'fiat') {
                             $set('price', 1.00); // Harga USD adalah 1
@@ -204,7 +198,9 @@ class TransactionResource extends Resource
     {
         // Panggil parent query untuk mendapatkan query dasar
         // Kemudian tambahkan kondisi where untuk user_id yang sedang login
-        return parent::getEloquentQuery()->where('user_id', auth()->id());
+        return parent::getEloquentQuery()
+            ->where('user_id', auth()->id())
+            ->orderBy('transaction_date', 'desc'); // Urutkan berdasarkan tanggal transaksi terbaru
     }
 
     public static function table(Table $table): Table
@@ -267,7 +263,7 @@ class TransactionResource extends Resource
                     ->toggleable(),
             ])
             ->filters([
-                SelectFilter::make('transaction_type') // Gunakan SelectFilter
+                Tables\Filters\SelectFilter::make('transaction_type') // Gunakan SelectFilter
                     ->label('Transaction Type')
                     ->options([
                         'buy' => 'Buy',
@@ -279,6 +275,23 @@ class TransactionResource extends Resource
                         if (isset($data['value'])) {
                             $query->where('transaction_type', $data['value']);
                         }
+                    }),
+
+                Tables\Filters\Filter::make('transaction_date')
+                    ->form([
+                        Forms\Components\DatePicker::make('from'),
+                        Forms\Components\DatePicker::make('until'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['from'],
+                                fn(Builder $query, $date): Builder => $query->whereDate('transaction_date', '>=', $date),
+                            )
+                            ->when(
+                                $data['until'],
+                                fn(Builder $query, $date): Builder => $query->whereDate('transaction_date', '<=', $date),
+                            );
                     }),
             ])
             ->bulkActions([

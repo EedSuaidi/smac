@@ -35,7 +35,9 @@ class ReportResource extends Resource
     {
         // Panggil parent query untuk mendapatkan query dasar
         // Kemudian tambahkan kondisi where untuk user_id yang sedang login
-        return parent::getEloquentQuery()->where('user_id', auth()->id());
+        return parent::getEloquentQuery()
+            ->where('user_id', auth()->id())
+            ->orderBy('report_date', 'desc');
     }
 
     public static function table(Table $table): Table
@@ -69,7 +71,7 @@ class ReportResource extends Resource
                     ->sortable()
                     ->toggleable()
                     ->formatStateUsing(function ($state) {
-                        return number_format($state, 2) . '%';
+                        return ($state >= 0 ? '+' : '') . number_format($state, 2) . '%';
                     })
                     ->badge()
                     ->colors([
@@ -86,10 +88,22 @@ class ReportResource extends Resource
                     }),
             ])
             ->filters([
-                //
-            ])
-            ->actions([
-                // Tables\Actions\EditAction::make(),
+                Tables\Filters\Filter::make('report_date')
+                    ->form([
+                        Forms\Components\DatePicker::make('from'),
+                        Forms\Components\DatePicker::make('until'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['from'],
+                                fn(Builder $query, $date): Builder => $query->whereDate('report_date', '>=', $date),
+                            )
+                            ->when(
+                                $data['until'],
+                                fn(Builder $query, $date): Builder => $query->whereDate('report_date', '<=', $date),
+                            );
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

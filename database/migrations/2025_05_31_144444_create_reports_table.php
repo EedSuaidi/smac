@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade')->onUpdate('cascade');
-            $table->decimal('daily_portfolio_value', 20, 8);
-            $table->decimal('daily_asset_growth', 20, 8);
+            $table->decimal('daily_portfolio_value', 20, 2);
+            $table->decimal('daily_asset_growth', 20, 2);
             $table->decimal('daily_asset_growth_percentage', 5, 2);
             $table->date('report_date');
             $table->unique(['user_id', 'report_date']);

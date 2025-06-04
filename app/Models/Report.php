@@ -19,6 +19,7 @@ class Report extends Model
         'user_id',
         'daily_portfolio_value',
         'daily_asset_growth',
+        'daily_asset_growth_percentage',
         'report_date',
     ];
 

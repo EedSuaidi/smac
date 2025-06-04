@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('currency_id')->constrained()->onDelete('cascade')->onUpdate('cascade');;
             $table->foreignId('user_id')->constrained()->onDelete('cascade')->onUpdate('cascade');;
+            $table->foreignId('currency_id')->constrained()->onDelete('cascade')->onUpdate('cascade');;
             $table->decimal('amount', 20, 8);
             $table->decimal('price', 20, 8);
             $table->decimal('total', 20, 8);

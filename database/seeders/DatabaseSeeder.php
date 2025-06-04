@@ -29,9 +29,8 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             CurrencySeeder::class,
-        ]);
-
-        $this->call([
+            TransactionSeeder::class,
+            WalletBalanceSeeder::class,
             ReportSeeder::class,
         ]);
     }

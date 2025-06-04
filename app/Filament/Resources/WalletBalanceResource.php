@@ -35,7 +35,9 @@ class WalletBalanceResource extends Resource
     {
         // Panggil parent query untuk mendapatkan query dasar
         // Kemudian tambahkan kondisi where untuk user_id yang sedang login
-        return parent::getEloquentQuery()->where('user_id', auth()->id());
+        return parent::getEloquentQuery()
+            ->where('user_id', auth()->id())
+            ->orderBy('currency_id', 'asc');;
     }
 
     public static function table(Table $table): Table
@@ -55,10 +57,13 @@ class WalletBalanceResource extends Resource
                 Tables\Columns\TextColumn::make('balance')
                     ->label('Balance')
                     ->sortable()
+                    ->toggleable()
                     ->numeric()
-                    ->formatStateUsing(fn($state) => number_format($state, 2)),
+                    ->formatStateUsing(fn($state) => number_format($state, min(8, max(2, strlen(rtrim(substr(strrchr($state, '.'), 1), '0')))), '.', ',')),
                 Tables\Columns\TextColumn::make('price')
                     ->label('Price')
+                    ->toggleable()
+                    ->numeric()
                     ->getStateUsing(function ($record) {
                         $currencySymbol = $record->currency->symbol;
                         return app(\App\Services\CryptoPriceService::class)->getPrice($currencySymbol);
@@ -66,6 +71,8 @@ class WalletBalanceResource extends Resource
                     ->formatStateUsing(fn($state) => '$' . number_format($state, 2)),
                 Tables\Columns\TextColumn::make('total_asset')
                     ->label('Total Asset')
+                    ->toggleable()
+                    ->numeric()
                     ->getStateUsing(function ($record) {
                         $currencySymbol = $record->currency->symbol;
                         $price = app(\App\Services\CryptoPriceService::class)->getPrice($currencySymbol);
