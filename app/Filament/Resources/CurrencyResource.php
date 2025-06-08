@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class CurrencyResource extends Resource
 {
@@ -55,6 +56,12 @@ class CurrencyResource extends Resource
             ]);
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->orderBy('created_at', 'desc');
+    }
+
     public static function table(Table $table): Table
     {
         return $table
@@ -92,7 +99,6 @@ class CurrencyResource extends Resource
             //     ExportAction::make()->exporter(CurrencyExporter::class),
             // ])
             ->actions([
-                Tables\Actions\ViewAction::make()->color('blue'),
                 Tables\Actions\EditAction::make()->color('warning'),
                 Tables\Actions\DeleteAction::make(),
             ])

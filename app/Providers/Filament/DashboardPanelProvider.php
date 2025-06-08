@@ -50,6 +50,8 @@ class DashboardPanelProvider extends PanelProvider
                 DailyPortfolioValueChart::class,
                 AssetsDistributionChart::class,
             ])
+            ->brandLogo(asset('images/logo.png'))
+            ->favicon(asset('images/logo.png'))
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

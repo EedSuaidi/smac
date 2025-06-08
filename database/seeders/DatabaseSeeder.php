@@ -27,6 +27,12 @@ class DatabaseSeeder extends Seeder
             'role' => 'user',
         ]);
 
+        User::factory()->create([
+            'name' => 'Person',
+            'email' => 'person@example.com',
+            'role' => 'user',
+        ]);
+
         $this->call([
             CurrencySeeder::class,
             TransactionSeeder::class,

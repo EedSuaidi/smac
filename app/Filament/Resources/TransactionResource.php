@@ -11,6 +11,8 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use App\Models\Currency; // Tambahkan ini
+use App\Models\WalletBalance; // Tambahkan ini
 
 class TransactionResource extends Resource
 {
@@ -35,9 +37,9 @@ class TransactionResource extends Resource
                     ->getSearchResultsUsing(function (string $search) {
                         return \App\Models\Currency::query()
                             ->where('name', 'like', "%{$search}%")
-                            ->orWhere('symbol', 'like', "%{$search}%") // Tambahkan pencarian berdasarkan symbol
+                            ->orWhere('symbol', 'like', "%{$search}%")
                             ->limit(50)
-                            ->get(['id', 'name', 'symbol']) // Ambil kolom 'id', 'name', dan 'symbol' langsung dari database
+                            ->get(['id', 'name', 'symbol'])
                             ->mapWithKeys(fn($currency) => [$currency->id => "{$currency->name} ({$currency->symbol})"]);
                     })
                     ->required()
@@ -45,8 +47,12 @@ class TransactionResource extends Resource
                     ->afterStateUpdated(function ($state, callable $set, $get) {
                         $currency = \App\Models\Currency::find($state);
                         if ($currency && $currency->currency_type === 'fiat') {
-                            $set('price', 1.00); // Harga USD adalah 1
-                            $set('total', $get('amount') ?? 0); // <-- TAMBAHKAN INI: total = amount
+                            $set('price', 1.00);
+                            $set('total', $get('amount') ?? 0);
+                        } else {
+                            // Reset price dan total jika bukan fiat, agar user input
+                            $set('price', null);
+                            $set('total', null);
                         }
                     }),
 
@@ -63,22 +69,38 @@ class TransactionResource extends Resource
                     ->debounce('500ms')
                     ->afterStateUpdated(function ($state, callable $set, $get) {
                         $price = $get('price') ?? 0;
-                        // Pastikan perhitungan menggunakan nilai float/decimal dan format total
                         $total = (float) $state * (float) $price;
-                        $set('total', number_format($total, 2, '.', '')); // Format ke 2 desimal
+                        $set('total', number_format($total, 8, '.', '')); // Pastikan presisi untuk kripto
                     })
                     ->rule(function ($get) {
-                        // Validasi saldo untuk 'sell' dan 'withdraw'
-                        if (in_array($get('transaction_type'), ['sell', 'withdraw'])) {
-                            $wallet = \App\Models\WalletBalance::where('currency_id', $get('currency_id'))
-                                ->where('user_id', auth()->id())
-                                ->first();
+                        return function (string $attribute, $value, \Closure $fail) use ($get) {
+                            $currencyId = $get('currency_id');
+                            $transactionType = $get('transaction_type');
+                            $amount = (float) $value;
 
-                            $balance = $wallet->balance ?? 0;
+                            if (!$currencyId) {
+                                return; // Skip validation if currency is not selected yet
+                            }
 
-                            return "lte:{$balance}";
-                        }
-                        return null;
+                            $currency = \App\Models\Currency::find($currencyId);
+
+                            if (!$currency) {
+                                return; // Skip if currency not found
+                            }
+
+                            // Validasi saldo untuk 'sell' dan 'withdraw'
+                            if (in_array($transactionType, ['sell', 'withdraw'])) {
+                                $wallet = \App\Models\WalletBalance::where('currency_id', $currencyId)
+                                    ->where('user_id', auth()->id())
+                                    ->first();
+
+                                $balance = (float) ($wallet->balance ?? 0);
+
+                                if ($balance < $amount) {
+                                    $fail("Insufficient balance for " . $currency->symbol . ". Your current balance is " . number_format($balance, 8) . ".");
+                                }
+                            }
+                        };
                     }),
 
                 Forms\Components\TextInput::make('price')
@@ -91,16 +113,13 @@ class TransactionResource extends Resource
                     ->debounce('500ms')
                     ->afterStateUpdated(function ($state, callable $set, $get) {
                         $amount = $get('amount') ?? 0;
-                        // Pastikan perhitungan menggunakan nilai float/decimal dan format total
                         $total = (float) $amount * (float) $state;
-                        $set('total', number_format($total, 2, '.', '')); // Format ke 2 desimal
+                        $set('total', number_format($total, 8, '.', '')); // Pastikan presisi untuk kripto
                     })
                     ->visible(function (Forms\Get $get) {
                         $currencyId = $get('currency_id');
-                        // Secara default terlihat, hanya disembunyikan jika mata uang USD dipilih
-                        if (!$currencyId) return true; // Default terlihat jika belum memilih currency
+                        if (!$currencyId) return true;
                         $currency = \App\Models\Currency::find($currencyId);
-                        // Sembunyikan jika itu USD
                         return !($currency && $currency->currency_type === 'fiat');
                     }),
 
@@ -111,12 +130,47 @@ class TransactionResource extends Resource
                     ->prefix('$')
                     ->required()
                     ->readOnly()
-                    ->visible(function (Forms\Get $get) { // <-- TAMBAHKAN BLOK INI
+                    ->visible(function (Forms\Get $get) {
                         $currencyId = $get('currency_id');
-                        if (!$currencyId) return true; // Default visible jika belum memilih currency
+                        if (!$currencyId) return true;
                         $currency = \App\Models\Currency::find($currencyId);
-                        // Sembunyikan jika itu USD
                         return !($currency && $currency->currency_type === 'fiat');
+                    })
+                    ->rule(function ($get) {
+                        return function (string $attribute, $value, \Closure $fail) use ($get) {
+                            $currencyId = $get('currency_id');
+                            $transactionType = $get('transaction_type');
+                            $total = (float) $value;
+
+                            if (!$currencyId) {
+                                return;
+                            }
+
+                            $currency = \App\Models\Currency::find($currencyId);
+
+                            if (!$currency) {
+                                return;
+                            }
+
+                            // Validasi saldo USD hanya untuk transaksi 'buy' kripto
+                            if ($currency->currency_type === 'crypto' && $transactionType === 'buy') {
+                                $usdCurrency = \App\Models\Currency::where('symbol', 'USD')->first();
+                                if (!$usdCurrency) {
+                                    $fail("USD currency not found in database.");
+                                    return;
+                                }
+
+                                $usdWalletBalance = \App\Models\WalletBalance::where('user_id', auth()->id())
+                                    ->where('currency_id', $usdCurrency->id)
+                                    ->first();
+
+                                $usdBalance = (float) ($usdWalletBalance->balance ?? 0);
+
+                                if ($usdBalance < $total) {
+                                    $fail("Insufficient USD balance to buy " . $currency->symbol . ". Your current USD balance is $" . number_format($usdBalance, 2) . ".");
+                                }
+                            }
+                        };
                     }),
 
                 Forms\Components\ToggleButtons::make('transaction_type')
@@ -128,63 +182,52 @@ class TransactionResource extends Resource
                         $currencyId = $get('currency_id');
                         $currency = $currencyId ? \App\Models\Currency::find($currencyId) : null;
 
-                        // Default: Buy/Sell jika tidak ada mata uang dipilih atau mata uangnya kripto
                         if (!$currencyId || ($currency && $currency->currency_type === 'crypto')) {
                             return [
                                 'buy' => 'Buy',
                                 'sell' => 'Sell',
                             ];
-                        }
-                        // Jika mata uangnya USD Fiat
-                        elseif ($currency && $currency->currency_type === 'fiat' && $currency->symbol === 'USD') {
+                        } elseif ($currency && $currency->currency_type === 'fiat' && $currency->symbol === 'USD') {
                             return [
                                 'deposit' => 'Deposit',
                                 'withdraw' => 'Withdraw',
                             ];
                         }
-                        return []; // Fallback, seharusnya tidak tercapai
+                        return [];
                     })
                     ->colors(function (Forms\Get $get) {
                         $currencyId = $get('currency_id');
                         $currency = $currencyId ? \App\Models\Currency::find($currencyId) : null;
-                        $selectedType = $get('transaction_type'); // Dapatkan tipe yang sedang terpilih
 
-                        // Default: Buy/Sell jika tidak ada mata uang dipilih atau mata uangnya kripto
                         if (!$currencyId || ($currency && $currency->currency_type === 'crypto')) {
                             return [
                                 'buy' => 'success',
                                 'sell' => 'danger',
                             ];
-                        }
-                        // Jika mata uangnya USD Fiat
-                        elseif ($currency && $currency->currency_type === 'fiat' && $currency->symbol === 'USD') {
+                        } elseif ($currency && $currency->currency_type === 'fiat' && $currency->symbol === 'USD') {
                             return [
                                 'deposit' => 'success',
                                 'withdraw' => 'danger',
                             ];
                         }
-                        return []; // Fallback
+                        return [];
                     })
                     ->icons(function (Forms\Get $get) {
                         $currencyId = $get('currency_id');
                         $currency = $currencyId ? \App\Models\Currency::find($currencyId) : null;
-                        $selectedType = $get('transaction_type'); // Dapatkan tipe yang sedang terpilih
 
-                        // Default: Buy/Sell jika tidak ada mata uang dipilih atau mata uangnya kripto
                         if (!$currencyId || ($currency && $currency->currency_type === 'crypto')) {
                             return [
                                 'buy' => 'heroicon-o-arrow-trending-up',
                                 'sell' => 'heroicon-o-arrow-trending-down',
                             ];
-                        }
-                        // Jika mata uangnya USD Fiat
-                        elseif ($currency && $currency->currency_type === 'fiat' && $currency->symbol === 'USD') {
+                        } elseif ($currency && $currency->currency_type === 'fiat' && $currency->symbol === 'USD') {
                             return [
                                 'deposit' => 'heroicon-o-arrow-trending-up',
                                 'withdraw' => 'heroicon-o-arrow-trending-down',
                             ];
                         }
-                        return []; // Fallback
+                        return [];
                     }),
 
                 Forms\Components\DatePicker::make('transaction_date')
@@ -196,11 +239,9 @@ class TransactionResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        // Panggil parent query untuk mendapatkan query dasar
-        // Kemudian tambahkan kondisi where untuk user_id yang sedang login
         return parent::getEloquentQuery()
             ->where('user_id', auth()->id())
-            ->orderBy('transaction_date', 'desc'); // Urutkan berdasarkan tanggal transaksi terbaru
+            ->orderBy('created_at', 'desc');
     }
 
     public static function table(Table $table): Table
@@ -221,21 +262,21 @@ class TransactionResource extends Resource
                     ->label('Amount')
                     ->sortable()
                     ->formatStateUsing(function ($state) {
-                        return number_format($state, 2);
+                        return number_format($state, 2); // Sesuaikan dengan presisi decimal
                     })
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('price')
                     ->label('Price')
                     ->sortable()
                     ->formatStateUsing(function ($state) {
-                        return '$' . number_format($state, 2);
+                        return '$' . number_format($state, 2); // Sesuaikan dengan presisi decimal
                     })
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('total')
                     ->label('Total')
                     ->sortable()
                     ->formatStateUsing(function ($state) {
-                        return '$' . number_format($state, 2);
+                        return '$' . number_format($state, 2); // Sesuaikan dengan presisi decimal
                     })
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('transaction_type')
@@ -263,7 +304,7 @@ class TransactionResource extends Resource
                     ->toggleable(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('transaction_type') // Gunakan SelectFilter
+                Tables\Filters\SelectFilter::make('transaction_type')
                     ->label('Transaction Type')
                     ->options([
                         'buy' => 'Buy',

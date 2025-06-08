@@ -16,9 +16,12 @@ class WalletBalanceExporter extends Exporter
         return [
             ExportColumn::make('id')
                 ->label('ID'),
-            ExportColumn::make('currency.name'),
-            ExportColumn::make('currency.symbol'),
-            ExportColumn::make('balance'),
+            ExportColumn::make('currency.name')
+                ->label('Currency Name'),
+            ExportColumn::make('currency.symbol')
+                ->label('Currency Symbol'),
+            ExportColumn::make('balance')
+                ->label('Balance'),
         ];
     }
 

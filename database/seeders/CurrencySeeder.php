@@ -225,7 +225,6 @@ class CurrencySeeder extends Seeder
             ['name' => 'Blox', 'symbol' => 'CDT', 'currency_type' => 'crypto'],
             ['name' => 'Galxe', 'symbol' => 'GAL', 'currency_type' => 'crypto'],
             ['name' => 'Meme Kombat', 'symbol' => 'MK', 'currency_type' => 'crypto'],
-            ['name' => 'Degen', 'symbol' => 'DEGEN', 'currency_type' => 'crypto'],
             ['name' => 'MANTRA', 'symbol' => 'OM', 'currency_type' => 'crypto'],
             ['name' => 'Popcat', 'symbol' => 'POPCAT', 'currency_type' => 'crypto'],
         ];
